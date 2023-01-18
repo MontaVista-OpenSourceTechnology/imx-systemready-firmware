@@ -8,16 +8,30 @@ supported, but more may be added.
 The standard builds from NXP are not SystemReady.  They build u-boot
 with OPTEE enabled, but don't build OPTEE into the image, so when
 u-boot tries to access EFI things it goes through OPTEE, which fails.
+I tried building OPTEE per the insructions and adding it to the build,
+but it still didn't work.  So this build just disabled OPTEE in
+u-boot.
 
-You should just type "make" here and it will build the firmware.  Once
-the firmware is built, plug the USB-C and debug cables from your
-computer into the MCIMX8M-EVK and run:
+You should just type "make" here and it will build the firmware.
+(Note that the first time, "make -j<n>" won't work because it prompts
+you for EULA acceptance.) Once the firmware is built, plug the USB-C
+and debug cables from your computer into the MCIMX8M-EVK.  There is a
+two-switch DIP switch near the debug port (the BOOT MODE switch) on
+the device.  The default setting is "10", change it to "01" to allow
+programming the eMMC.  Then run:
 
    sudo ./uuu -b emmc imx-boot-imx8mq.bin
 
-It will burn the firmware into the eMMC device on the board.  It will
-then boot a SystemReady image on an SD card or USB device.
+It will burn the firmware into the eMMC device on the board.  Change
+the DIP switch back to the default. and reset the board.  It will then
+boot a SystemReady image on an SD card or USB device.
 
 I tested this booting a Yocto image built from
 https://github.com/MontaVista-OpenSourceTechnology/opencgx-armsr and a
 Rocky Linux image.
+
+This information was pulled from all over the place in the NXP
+documentation.  The most important was i.MX_Linux_Users_Guide.pdf, but
+there were also the Quick Start Guide for the i.MX 8M Quad Evaluation
+Kit, the i.MX 8M EVK Board Hardware User's Guide, and various forum
+documentation.

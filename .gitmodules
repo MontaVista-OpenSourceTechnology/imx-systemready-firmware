@@ -7,3 +7,6 @@
 [submodule "imx-mkimage"]
 	path = imx-mkimage
 	url = https://source.codeaurora.org/external/imx/imx-mkimage
+[submodule "imx-optee-os"]
+	path = imx-optee-os
+	url = https://source.codeaurora.org/external/imx/imx-optee-os
