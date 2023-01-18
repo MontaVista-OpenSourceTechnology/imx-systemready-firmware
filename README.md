@@ -5,6 +5,14 @@ firmware for i.MX8M platform devices.  Currently only the the i.MX8M
 Quad EVK (imx8mq-evk, or MCIMX8M-EVK, all the same device) is
 supported, but more may be added.
 
+You will need some things on your host to build this.  On Ubuntu, run:
+```
+sudo apt install gcc-aarch64-linux-gnu
+sudo apt install libusb-1.0-0-dev libbz2-dev libzstd-dev pkg-config
+sudo apt install cmake libssl-dev g++
+```
+There may be more.
+
 The standard builds from NXP are not SystemReady.  They build u-boot
 with OPTEE enabled, but don't build OPTEE into the image, so when
 u-boot tries to access EFI things it goes through OPTEE, which fails.

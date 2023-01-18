@@ -146,8 +146,13 @@ mkimage-clean:
 # uuu
 ################################################################################
 uuu:
-	wget $(UUU_URL)
-	chmod +x uuu
+	(cd mfgtools && cmake .)
+	(cd mfgtools && make)
+	cp mfgtools/uuu/uuu .
+
+uuu-clean:
+	rm -f uuu
+	(cd mfgtools && make clean)
 
 ################################################################################
 # 
