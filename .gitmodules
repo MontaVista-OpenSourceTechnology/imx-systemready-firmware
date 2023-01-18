@@ -1,0 +1,9 @@
+[submodule "imx-atf"]
+	path = imx-atf
+	url = https://source.codeaurora.org/external/imx/imx-atf
+[submodule "uboot-imx"]
+	path = uboot-imx
+	url = https://source.codeaurora.org/external/imx/uboot-imx
+[submodule "imx-mkimage"]
+	path = imx-mkimage
+	url = https://source.codeaurora.org/external/imx/imx-mkimage
