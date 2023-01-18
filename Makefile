@@ -3,6 +3,9 @@ all: binaries
 
 clean: arm-tf-clean u-boot-clean mkimage-clean bin-clean
 
+realclean: clean
+	rm -f $(FW_PATH) firmware-imx-$(FIRMWARE_VER).bin uuu
+
 ROOT ?= $(shell pwd)
 
 CROSS_COMPILE ?= aarch64-linux-gnu-
@@ -16,6 +19,11 @@ DTB = $(PLATFORM)-evk.dtb
 OPTEE_PLATFORM = imx-mx8mqevk
 TARGET_BIN = imx-boot-$(PLATFORM).bin
 MKIMAGE_SOC = iMX8M
+
+# Enable or disable OPTEE.  Currently, enabling it doesn't work.  Set
+# to true or false.  If you change this, you probably need to run
+# "make clean" before rebuilding.
+ENABLE_TEE = false
 
 FIRMWARE_VER = 8.15
 FIRMWARE_FILE = firmware-imx-$(FIRMWARE_VER).bin
@@ -60,8 +68,11 @@ U-BOOT_FLAGS = O=$(U-BOOT_BUILD) PLAT=$(PLATFORM)
 u-boot:
 	if test ! -e $(U-BOOT_BUILD); then mkdir $(U-BOOT_BUILD); fi
 	if test ! -e $(U-BOOT_BUILD)/.config; then \
-#		$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) $(U-BOOT_FLAGS) imx8mq_evk_defconfig \
+	    if $(ENABLE_TEE); then \
+		$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) $(U-BOOT_FLAGS) imx8mq_evk_defconfig; \
+	    else \
 		 cp $(ROOT)/$(PLATFORM).config $(U-BOOT_BUILD)/.config; \
+	    fi \
 	fi
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) $(U-BOOT_FLAGS)
 
@@ -101,7 +112,11 @@ mkimage: firmware-imx-$(FIRMWARE_VER) #optee
 	cp $(U-BOOT_BUILD)/u-boot-nodtb.bin imx-mkimage/iMX8M
 	cp $(U-BOOT_BUILD)/arch/arm/dts/$(DTB) imx-mkimage/iMX8M
 	cp $(TF_A_OUT) imx-mkimage/iMX8M
-#	cp $(OPTEE_OUT) imx-mkimage/iMX8M
+	if $(ENABLE_TEE); then \
+	    cp $(OPTEE_OUT) imx-mkimage/iMX8M; \
+	else \
+	    rm -f imx-mkimage/iMX8M/tee.bin; \
+	fi
 	cp $(FW_PATH)/firmware/hdmi/cadence/signed_hdmi_imx8m.bin imx-mkimage/iMX8M
 	cp $(FW_PATH)/firmware/ddr/synopsys/lpddr4_pmu_train_1d_dmem.bin imx-mkimage/iMX8M
 	cp $(FW_PATH)/firmware/ddr/synopsys/lpddr4_pmu_train_1d_imem.bin imx-mkimage/iMX8M
@@ -140,5 +155,4 @@ uuu:
 binaries: u-boot arm-tf optee mkimage uuu
 
 bin-clean:
-	rm -rf $(TARGET_BIN) $(FW_PATH) firmware-imx-$(FIRMWARE_VER).bin \
-		uuu
+	rm -rf $(TARGET_BIN)
