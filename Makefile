@@ -52,6 +52,7 @@ arm-tf-clean:
 ################################################################################
 # u-boot
 ################################################################################
+U-BOOT_PATCHES = uboot-imx-dont-reset-phy.diff
 U-BOOT_PATH = $(ROOT)/uboot-imx
 U-BOOT_BUILD ?= $(U-BOOT_PATH)/build
 
@@ -65,7 +66,13 @@ U-BOOT_EXPORTS ?= \
 
 U-BOOT_FLAGS = O=$(U-BOOT_BUILD) PLAT=$(PLATFORM)
 
-u-boot:
+u-boot-patches-applied:
+	for i in $(U-BOOT_PATCHES); do \
+		(cd $(U-BOOT_PATH); patch -p1 <../$$i); \
+	done
+	touch u-boot-patches-applied
+
+u-boot: u-boot-patches-applied
 	if test ! -e $(U-BOOT_BUILD); then mkdir $(U-BOOT_BUILD); fi
 	if test ! -e $(U-BOOT_BUILD)/.config; then \
 	    if $(ENABLE_TEE); then \
@@ -78,6 +85,8 @@ u-boot:
 
 u-boot-clean:
 	rm -rf $(U-BOOT_BUILD)
+	(cd $(U-BOOT_PATH); git reset --hard)
+	rm u-boot-patches-applied
 
 ################################################################################
 # Firmware files

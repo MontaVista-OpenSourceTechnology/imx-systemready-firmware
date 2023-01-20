@@ -1,0 +1,16 @@
+This patch fixes ethernet, at least on a 3.10 kernel, something gets messed
+up in the phy if you reset it, at least this way, so don't do that.
+
+diff --git a/arch/arm/dts/imx8mq-evk.dts b/arch/arm/dts/imx8mq-evk.dts
+index de709088e5..1bed482aa9 100644
+--- a/arch/arm/dts/imx8mq-evk.dts
++++ b/arch/arm/dts/imx8mq-evk.dts
+@@ -176,8 +176,6 @@
+ 		ethphy0: ethernet-phy@0 {
+ 			compatible = "ethernet-phy-ieee802.3-c22";
+ 			reg = <0>;
+-			reset-gpios = <&gpio1 9 GPIO_ACTIVE_LOW>;
+-			reset-assert-us = <10000>;
+ 			at803x,eee-disabled;
+ 		};
+ 	};
