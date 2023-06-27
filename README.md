@@ -10,6 +10,8 @@ You will need some things on your host to build this.  On Ubuntu, run:
 sudo apt install gcc-aarch64-linux-gnu
 sudo apt install libusb-1.0-0-dev libbz2-dev libzstd-dev pkg-config
 sudo apt install cmake libssl-dev g++
+sudo apt install libgnutls28-dev
+sudo apt install python3-pyelftools
 ```
 There may be more.
 

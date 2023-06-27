@@ -1,7 +1,7 @@
 
 all: binaries
 
-clean: arm-tf-clean u-boot-clean mkimage-clean bin-clean
+clean: arm-tf-clean u-boot-clean mkimage-clean bin-clean optee-clean
 
 realclean: clean
 	rm -f $(FW_PATH) firmware-imx-$(FIRMWARE_VER).bin uuu
@@ -27,7 +27,7 @@ ENABLE_TEE = false
 
 FIRMWARE_VER = 8.15
 FIRMWARE_FILE = firmware-imx-$(FIRMWARE_VER).bin
-FIRMWARE_URL = https://www.nxp.com/lgfiles/NMG/MAD/YOCTO/$(FIRMWARE_FILE)
+FIRMWARE_URL = http://sources.buildroot.net/firmware-imx/$(FIRMWARE_FILE)
 
 UUU_URL = https://github.com/NXPmicro/mfgtools/releases/download/uuu_1.5.11/uuu
 
@@ -52,7 +52,7 @@ arm-tf-clean:
 ################################################################################
 # u-boot
 ################################################################################
-U-BOOT_PATCHES = uboot-imx-dont-reset-phy.diff
+U-BOOT_PATCHES = 
 U-BOOT_PATH = $(ROOT)/uboot-imx
 U-BOOT_BUILD ?= $(U-BOOT_PATH)/build
 
@@ -76,7 +76,7 @@ u-boot: u-boot-patches-applied
 	if test ! -e $(U-BOOT_BUILD); then mkdir $(U-BOOT_BUILD); fi
 	if test ! -e $(U-BOOT_BUILD)/.config; then \
 	    if $(ENABLE_TEE); then \
-		$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) $(U-BOOT_FLAGS) imx8mq_evk_defconfig; \
+		$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) $(U-BOOT_FLAGS) $(UBOOT_DEFCONFIG); \
 	    else \
 		 cp $(ROOT)/$(PLATFORM).config $(U-BOOT_BUILD)/.config; \
 	    fi \
@@ -86,14 +86,15 @@ u-boot: u-boot-patches-applied
 u-boot-clean:
 	rm -rf $(U-BOOT_BUILD)
 	(cd $(U-BOOT_PATH); git reset --hard)
-	rm u-boot-patches-applied
+	rm -f u-boot-patches-applied
 
 ################################################################################
 # Firmware files
 ################################################################################
 FW_PATH = $(ROOT)/firmware-imx-$(FIRMWARE_VER)
 firmware-imx-$(FIRMWARE_VER):
-	wget $(FIRMWARE_URL)
+#       IPv6 doesn't seem to work on this URL.
+	wget -4 $(FIRMWARE_URL)
 	bash ./firmware-imx-$(FIRMWARE_VER).bin
 
 ################################################################################
@@ -113,7 +114,7 @@ optee-clean:
 # imx-mkimage
 ################################################################################
 MKIMAGE_PATH = $(ROOT)/imx-mkimage
-MKIMAGE_FLAGS = SOC=$(MKIMAGE_SOC) flash_evk_no_hdmi
+MKIMAGE_FLAGS = SOC=$(MKIMAGE_SOC) flash_evk_no_hdmi TEE=tee.bin
 
 mkimage: firmware-imx-$(FIRMWARE_VER) #optee
 	cp $(U-BOOT_BUILD)/tools/mkimage imx-mkimage/iMX8M/mkimage_uboot
