@@ -43,6 +43,10 @@ TF_A_OUT = $(TF_A_PATH)/build/$(PLATFORM)/release/bl31.bin
 TF_A_FLAGS ?= \
         PLAT=$(ATF_PLATFORM)
 
+ifeq ($(ENABLE_TEE),true)
+TF_A_FLAGS += SPD=opteed
+endif
+
 arm-tf:
 	$(TF_A_EXPORTS) $(MAKE) -C imx-atf $(TF_A_FLAGS) bl31
 
@@ -102,7 +106,7 @@ firmware-imx-$(FIRMWARE_VER):
 ################################################################################
 OPTEE_PATH = $(ROOT)/imx-optee-os
 OPTEE_FLAGS = PLATFORM=$(OPTEE_PLATFORM)
-OPTEE_OUT = $(OPTEE_PATH)/out/arm-plat-imx/core/tee.bin
+OPTEE_OUT = $(OPTEE_PATH)/out/arm-plat-imx/core/tee-raw.bin
 
 optee:
 	make -C $(OPTEE_PATH) $(OPTEE_FLAGS)
@@ -114,7 +118,7 @@ optee-clean:
 # imx-mkimage
 ################################################################################
 MKIMAGE_PATH = $(ROOT)/imx-mkimage
-MKIMAGE_FLAGS = SOC=$(MKIMAGE_SOC) flash_evk_no_hdmi TEE=tee.bin
+MKIMAGE_FLAGS = SOC=$(MKIMAGE_SOC) flash_evk_no_hdmi
 
 mkimage: firmware-imx-$(FIRMWARE_VER) #optee
 	cp $(U-BOOT_BUILD)/tools/mkimage imx-mkimage/iMX8M/mkimage_uboot
@@ -123,7 +127,7 @@ mkimage: firmware-imx-$(FIRMWARE_VER) #optee
 	cp $(U-BOOT_BUILD)/arch/arm/dts/$(DTB) imx-mkimage/iMX8M
 	cp $(TF_A_OUT) imx-mkimage/iMX8M
 	if $(ENABLE_TEE); then \
-	    cp $(OPTEE_OUT) imx-mkimage/iMX8M; \
+	    cp $(OPTEE_OUT) imx-mkimage/iMX8M/tee.bin; \
 	else \
 	    rm -f imx-mkimage/iMX8M/tee.bin; \
 	fi
