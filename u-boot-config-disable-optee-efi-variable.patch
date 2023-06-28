@@ -1,0 +1,19 @@
+Setting up the EFI variables to be in optee is not done yet, so
+disable that and just store them in a file.  It will not boot an EFI
+application without this.
+
+--- uboot-imx/build/config.old	2023-06-27 19:08:41.317366380 -0500
++++ uboot-imx/build/.config	2023-06-27 18:56:36.507518249 -0500
+@@ -2274,9 +2274,10 @@
+ # CONFIG_SMBIOS_PARSER is not set
+ CONFIG_EFI_LOADER=y
+ CONFIG_CMD_BOOTEFI_BOOTMGR=y
+-# CONFIG_EFI_VARIABLE_FILE_STORE is not set
+-CONFIG_EFI_MM_COMM_TEE=y
++CONFIG_EFI_VARIABLE_FILE_STORE=y
++# CONFIG_EFI_MM_COMM_TEE is not set
+ # CONFIG_EFI_VARIABLE_NO_STORE is not set
++# CONFIG_EFI_VARIABLES_PRESEED is not set
+ CONFIG_EFI_VAR_BUF_SIZE=139264
+ CONFIG_EFI_GET_TIME=y
+ CONFIG_EFI_SET_TIME=y

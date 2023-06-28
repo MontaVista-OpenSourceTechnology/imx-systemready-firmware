@@ -20,10 +20,10 @@ OPTEE_PLATFORM = imx-mx8mqevk
 TARGET_BIN = imx-boot-$(PLATFORM).bin
 MKIMAGE_SOC = iMX8M
 
-# Enable or disable OPTEE.  Currently, enabling it doesn't work.  Set
-# to true or false.  If you change this, you probably need to run
-# "make clean" before rebuilding.
-ENABLE_TEE = false
+# Enable or disable OPTEE.  Enabling does work, but currently EFI
+# variables are not stored in the TEE, so some hacking on the config
+# has to be done.  That should be fixed at some point.
+ENABLE_TEE = true
 
 FIRMWARE_VER = 8.15
 FIRMWARE_FILE = firmware-imx-$(FIRMWARE_VER).bin
@@ -57,6 +57,7 @@ arm-tf-clean:
 # u-boot
 ################################################################################
 U-BOOT_PATCHES = 
+U-BOOT_DEFCONFIG_PATCHES = u-boot-config-disable-optee-efi-variable.patch
 U-BOOT_PATH = $(ROOT)/uboot-imx
 U-BOOT_BUILD ?= $(U-BOOT_PATH)/build
 
@@ -81,6 +82,9 @@ u-boot: u-boot-patches-applied
 	if test ! -e $(U-BOOT_BUILD)/.config; then \
 	    if $(ENABLE_TEE); then \
 		$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) $(U-BOOT_FLAGS) $(UBOOT_DEFCONFIG); \
+		for i in $(U-BOOT_DEFCONFIG_PATCHES); do \
+			(cd $(U-BOOT_PATH); patch -p1 <../$$i); \
+		done; \
 	    else \
 		 cp $(ROOT)/$(PLATFORM).config $(U-BOOT_BUILD)/.config; \
 	    fi \
