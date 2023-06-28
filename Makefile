@@ -6,6 +6,8 @@ clean: arm-tf-clean u-boot-clean mkimage-clean bin-clean optee-clean
 realclean: clean
 	rm -f $(FW_PATH) firmware-imx-$(FIRMWARE_VER).bin uuu
 
+BUILDVER = 0.2
+
 ROOT ?= $(shell pwd)
 
 CROSS_COMPILE ?= aarch64-linux-gnu-
@@ -17,7 +19,7 @@ UBOOT_PLATFORM = $(PLATFORM)
 UBOOT_DEFCONFIG = $(PLATFORM)_evk_defconfig
 DTB = $(PLATFORM)-evk.dtb
 OPTEE_PLATFORM = imx-mx8mqevk
-TARGET_BIN = imx-boot-$(PLATFORM).bin
+TARGET_BIN = imx-boot-$(PLATFORM)-$(BUILDVER).bin
 MKIMAGE_SOC = iMX8M
 
 # Enable or disable OPTEE.  Enabling does work, but currently EFI
