@@ -10,3 +10,9 @@
 [submodule "imx-optee-os"]
 	path = imx-optee-os
 	url = https://github.com/nxp-imx/imx-optee-os.git
+[submodule "optee_client"]
+	path = optee_client
+	url = https://github.com/OP-TEE/optee_client.git
+[submodule "optee_examples"]
+	path = optee_examples
+	url = https://github.com/linaro-swg/optee_examples.git

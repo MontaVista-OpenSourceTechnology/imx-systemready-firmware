@@ -1,14 +1,28 @@
 
 all: binaries
 
-clean: arm-tf-clean u-boot-clean mkimage-clean bin-clean optee-clean
+clean: arm-tf-clean u-boot-clean mkimage-clean bin-clean optee-clean \
+	optee-client-clean optee-examples-clean
 
 realclean: clean
 	rm -f $(FW_PATH) firmware-imx-$(FIRMWARE_VER).bin uuu
 
-BUILDVER = 0.2
+BUILDVER = 0.3
+
+# Override these with your own keys to replace the default.  You
+# should do that in a real applicatin.
+TA_SIGN_KEY ?= $(ROOT)/imx-optee-os/keys/default_ta.pem
+TA_PUBLIC_KEY ?= $(TA_SIGN_KEY)
+
+KEYS = TA_SIGN_KEY=$(TA_SIGN_KEY) TA_PUBLIC_KEY=$(TA_PUBLIC_KEY)
 
 ROOT ?= $(shell pwd)
+
+# Where to put includes, libraries, etc.  For optee-client for now.
+INSTALL_DIR ?= install
+
+# Where to put output binaries.  For optee-examples for now.
+BIN_DIR ?= bin
 
 CROSS_COMPILE ?= aarch64-linux-gnu-
 
@@ -111,7 +125,7 @@ firmware-imx-$(FIRMWARE_VER):
 # optee
 ################################################################################
 OPTEE_PATH = $(ROOT)/imx-optee-os
-OPTEE_FLAGS = PLATFORM=$(OPTEE_PLATFORM)
+OPTEE_FLAGS = PLATFORM=$(OPTEE_PLATFORM) $(KEYS)
 OPTEE_OUT = $(OPTEE_PATH)/out/arm-plat-imx/core/tee-raw.bin
 
 optee:
@@ -175,9 +189,59 @@ uuu-clean:
 	(cd mfgtools && make clean)
 
 ################################################################################
+# optee_client
+################################################################################
+optee-client:
+	if test ! -e optee_client/build; then \
+		mkdir optee_client/build && \
+		(cd optee_client/build && cmake -DCMAKE_C_COMPILER=$(CROSS_COMPILE)gcc -DCMAKE_INSTALL_PREFIX=$(ROOT)/$(INSTALL_DIR) ..) \
+	fi
+	(cd optee_client/build; make)
+	(cd optee_client/build; make install)
+
+optee-client-clean:
+	rm -rf optee_client/build
+
+################################################################################
+# optee-examples
+################################################################################
+OPTEE_EXAMPLES = hello_world random acipher aes hotp secure_storage
+optee-examples:
+	mkdir -p $(ROOT)/bin
+	for i in $(OPTEE_EXAMPLES); do \
+		(cd optee_examples/$$i/ta && \
+		 make $(KEYS) CROSS_COMPILE=$(CROSS_COMPILE) \
+	           PLATFORM=$(OPTEE_PLATORM) \
+	           TA_DEV_KIT_DIR=$(ROOT)/imx-optee-os/out/arm-plat-imx/export-ta_arm64 && \
+		 cp *.ta $(ROOT)/bin) \
+	done
+	for i in $(OPTEE_EXAMPLES); do \
+		(cd optee_examples/$$i/host && \
+		 make CROSS_COMPILE=$(CROSS_COMPILE) \
+	           TEEC_EXPORT=$(ROOT)/install --no-builtin-variables && \
+		 cp optee_example_$$i $(ROOT)/bin); \
+	done
+
+optee-examples-clean:
+	for i in $(OPTEE_EXAMPLES); do \
+		(cd optee_examples/$$i/ta && \
+		 make CROSS_COMPILE=$(CROSS_COMPILE) \
+	           PLATFORM=$(OPTEE_PLATORM) \
+	           TA_DEV_KIT_DIR=$(ROOT)/imx-optee-os/out/arm-plat-imx/export-ta_arm64 \
+		   clean) \
+	done
+	for i in $(OPTEE_EXAMPLES); do \
+		(cd optee_examples/$$i/host && \
+		 make CROSS_COMPILE=$(CROSS_COMPILE) \
+	           TEEC_EXPORT=$(ROOT)/install --no-builtin-variables \
+		   clean) \
+	done
+	rm -f optee_examples/*/ta/dyn_list
+
+################################################################################
 # 
 ################################################################################
-binaries: u-boot arm-tf optee mkimage uuu
+binaries: u-boot arm-tf optee mkimage uuu optee-client optee-examples
 
 bin-clean:
-	rm -rf $(TARGET_BIN)
+	rm -rf uuu $(TARGET_BIN) $(INSTALL_DIR) $(BIN_DIR)
