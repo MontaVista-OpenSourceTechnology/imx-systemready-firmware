@@ -16,3 +16,6 @@
 [submodule "optee_examples"]
 	path = optee_examples
 	url = https://github.com/linaro-swg/optee_examples.git
+[submodule "mfgtools"]
+	path = mfgtools
+	url = https://github.com/nxp-imx/mfgtools.git

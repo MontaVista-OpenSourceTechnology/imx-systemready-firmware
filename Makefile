@@ -34,8 +34,6 @@ FIRMWARE_VER = 8.15
 FIRMWARE_FILE = firmware-imx-$(FIRMWARE_VER).bin
 FIRMWARE_URL = http://sources.buildroot.net/firmware-imx/$(FIRMWARE_FILE)
 
-UUU_URL = https://github.com/NXPmicro/mfgtools/releases/download/uuu_1.5.11/uuu
-
 ################################################################################
 # ARM Trusted Firmware
 ################################################################################
@@ -229,9 +227,11 @@ optee-examples-clean:
 	rm -f optee_examples/*/ta/dyn_list
 
 ################################################################################
-# 
+# Build everything
+# firmware-imx is first so the EULA things is first.
 ################################################################################
-binaries: u-boot arm-tf optee mkimage uuu optee-client optee-examples
+binaries: firmware-imx-$(FIRMWARE_VER) \
+	u-boot arm-tf optee mkimage uuu optee-client optee-examples
 
 bin-clean:
 	rm -rf uuu $(TARGET_BIN) $(INSTALL_DIR) $(BIN_DIR)
