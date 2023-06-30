@@ -7,7 +7,7 @@ clean: arm-tf-clean u-boot-clean mkimage-clean bin-clean optee-clean \
 realclean: clean
 	rm -f $(FW_PATH) firmware-imx-$(FIRMWARE_VER).bin uuu
 
-BUILDVER = 0.3
+BUILDVER = 1.0
 
 FW_ROOT ?= $(shell pwd)
 
