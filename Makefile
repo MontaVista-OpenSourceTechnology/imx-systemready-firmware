@@ -9,32 +9,21 @@ realclean: clean
 
 BUILDVER = 0.3
 
-# Override these with your own keys to replace the default.  You
-# should do that in a real applicatin.
-TA_SIGN_KEY ?= $(ROOT)/imx-optee-os/keys/default_ta.pem
-TA_PUBLIC_KEY ?= $(TA_SIGN_KEY)
+FW_ROOT ?= $(shell pwd)
 
-KEYS = TA_SIGN_KEY=$(TA_SIGN_KEY) TA_PUBLIC_KEY=$(TA_PUBLIC_KEY)
+# Override this to use you rown config file.
+FW_CONFIG ?= $(FW_ROOT)/make.config
 
-ROOT ?= $(shell pwd)
-
-# Where to put includes, libraries, etc.  For optee-client for now.
-INSTALL_DIR ?= install
+include $(FW_CONFIG)
 
 # Where to put output binaries.  For optee-examples for now.
 BIN_DIR ?= bin
-
-CROSS_COMPILE ?= aarch64-linux-gnu-
-
-PLATFORM ?= imx8mq
 
 ATF_PLATFORM = $(PLATFORM)
 UBOOT_PLATFORM = $(PLATFORM)
 UBOOT_DEFCONFIG = $(PLATFORM)_evk_defconfig
 DTB = $(PLATFORM)-evk.dtb
-OPTEE_PLATFORM = imx-mx8mqevk
 TARGET_BIN = imx-boot-$(PLATFORM)-$(BUILDVER).bin
-MKIMAGE_SOC = iMX8M
 
 # Enable or disable OPTEE.  Enabling does work, but currently EFI
 # variables are not stored in the TEE, so some hacking on the config
@@ -52,7 +41,7 @@ UUU_URL = https://github.com/NXPmicro/mfgtools/releases/download/uuu_1.5.11/uuu
 ################################################################################
 TF_A_EXPORTS ?= CROSS_COMPILE="$(CROSS_COMPILE)"
 
-TF_A_PATH = $(ROOT)/imx-atf
+TF_A_PATH = $(FW_ROOT)/imx-atf
 
 TF_A_OUT = $(TF_A_PATH)/build/$(PLATFORM)/release/bl31.bin
 
@@ -74,12 +63,12 @@ arm-tf-clean:
 ################################################################################
 U-BOOT_PATCHES = 
 U-BOOT_DEFCONFIG_PATCHES = u-boot-config-disable-optee-efi-variable.patch
-U-BOOT_PATH = $(ROOT)/uboot-imx
+U-BOOT_PATH = $(FW_ROOT)/uboot-imx
 U-BOOT_BUILD ?= $(U-BOOT_PATH)/build
 
 U-BOOT_DEFCONFIG_FILES := \
 	$(U-BOOT_PATH)/configs/ \
-        $(ROOT)/$(PLATFORM).config
+        $(FW_ROOT)/$(PLATFORM).config
 
 U-BOOT_EXPORTS ?= \
         CROSS_COMPILE="$(CROSS_COMPILE)" \
@@ -102,7 +91,7 @@ u-boot: u-boot-patches-applied
 			(cd $(U-BOOT_PATH); patch -p1 <../$$i); \
 		done; \
 	    else \
-		 cp $(ROOT)/$(PLATFORM).config $(U-BOOT_BUILD)/.config; \
+		 cp $(FW_ROOT)/$(PLATFORM).config $(U-BOOT_BUILD)/.config; \
 	    fi \
 	fi
 	$(U-BOOT_EXPORTS) $(MAKE) -C $(U-BOOT_PATH) $(U-BOOT_FLAGS)
@@ -115,7 +104,7 @@ u-boot-clean:
 ################################################################################
 # Firmware files
 ################################################################################
-FW_PATH = $(ROOT)/firmware-imx-$(FIRMWARE_VER)
+FW_PATH = $(FW_ROOT)/firmware-imx-$(FIRMWARE_VER)
 firmware-imx-$(FIRMWARE_VER):
 #       IPv6 doesn't seem to work on this URL.
 	wget -4 $(FIRMWARE_URL)
@@ -124,7 +113,7 @@ firmware-imx-$(FIRMWARE_VER):
 ################################################################################
 # optee
 ################################################################################
-OPTEE_PATH = $(ROOT)/imx-optee-os
+OPTEE_PATH = $(FW_ROOT)/imx-optee-os
 OPTEE_FLAGS = PLATFORM=$(OPTEE_PLATFORM) $(KEYS)
 OPTEE_OUT = $(OPTEE_PATH)/out/arm-plat-imx/core/tee-raw.bin
 
@@ -137,7 +126,7 @@ optee-clean:
 ################################################################################
 # imx-mkimage
 ################################################################################
-MKIMAGE_PATH = $(ROOT)/imx-mkimage
+MKIMAGE_PATH = $(FW_ROOT)/imx-mkimage
 MKIMAGE_FLAGS = SOC=$(MKIMAGE_SOC) flash_evk_no_hdmi
 
 mkimage: firmware-imx-$(FIRMWARE_VER) #optee
@@ -194,7 +183,8 @@ uuu-clean:
 optee-client:
 	if test ! -e optee_client/build; then \
 		mkdir optee_client/build && \
-		(cd optee_client/build && cmake -DCMAKE_C_COMPILER=$(CROSS_COMPILE)gcc -DCMAKE_INSTALL_PREFIX=$(ROOT)/$(INSTALL_DIR) ..) \
+		(cd optee_client/build && \
+		   cmake -DCMAKE_C_COMPILER=$(CROSS_COMPILE)gcc -DCMAKE_INSTALL_PREFIX=$(FW_ROOT)/$(INSTALL_DIR) ..) \
 	fi
 	(cd optee_client/build; make)
 	(cd optee_client/build; make install)
@@ -207,19 +197,19 @@ optee-client-clean:
 ################################################################################
 OPTEE_EXAMPLES = hello_world random acipher aes hotp secure_storage
 optee-examples:
-	mkdir -p $(ROOT)/bin
+	mkdir -p $(FW_ROOT)/bin
 	for i in $(OPTEE_EXAMPLES); do \
 		(cd optee_examples/$$i/ta && \
 		 make $(KEYS) CROSS_COMPILE=$(CROSS_COMPILE) \
 	           PLATFORM=$(OPTEE_PLATORM) \
-	           TA_DEV_KIT_DIR=$(ROOT)/imx-optee-os/out/arm-plat-imx/export-ta_arm64 && \
-		 cp *.ta $(ROOT)/bin) \
+	           TA_DEV_KIT_DIR=$(TA_DEV_KIT_DIR) && \
+		 cp *.ta $(FW_ROOT)/bin) \
 	done
 	for i in $(OPTEE_EXAMPLES); do \
 		(cd optee_examples/$$i/host && \
 		 make CROSS_COMPILE=$(CROSS_COMPILE) \
-	           TEEC_EXPORT=$(ROOT)/install --no-builtin-variables && \
-		 cp optee_example_$$i $(ROOT)/bin); \
+	           TEEC_EXPORT=$(TEEC_EXPORT) --no-builtin-variables && \
+		 cp optee_example_$$i $(FW_ROOT)/bin); \
 	done
 
 optee-examples-clean:
@@ -227,13 +217,13 @@ optee-examples-clean:
 		(cd optee_examples/$$i/ta && \
 		 make CROSS_COMPILE=$(CROSS_COMPILE) \
 	           PLATFORM=$(OPTEE_PLATORM) \
-	           TA_DEV_KIT_DIR=$(ROOT)/imx-optee-os/out/arm-plat-imx/export-ta_arm64 \
+	           TA_DEV_KIT_DIR=$(TA_DEV_KIT_DIR) \
 		   clean) \
 	done
 	for i in $(OPTEE_EXAMPLES); do \
 		(cd optee_examples/$$i/host && \
 		 make CROSS_COMPILE=$(CROSS_COMPILE) \
-	           TEEC_EXPORT=$(ROOT)/install --no-builtin-variables \
+	           TEEC_EXPORT=$(TEEC_EXPORT) --no-builtin-variables \
 		   clean) \
 	done
 	rm -f optee_examples/*/ta/dyn_list

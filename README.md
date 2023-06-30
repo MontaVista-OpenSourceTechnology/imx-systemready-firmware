@@ -11,6 +11,17 @@ target.
 
 ## Building
 
+The standard builds from NXP are not SystemReady.  They build u-boot
+with OPTEE enabled, but don't build OPTEE into the image, so when
+u-boot tries to access EFI things it goes through OPTEE, which fails.
+The trouble is that OPTEE is trying to access EFI variables through
+u-boot, but that is not working on a default board, probably because
+RPMB is not set up on the eMMC chip.
+
+To work around this, this build puts EFI variables in a normal file.
+
+### Necessary Host Packates
+
 You will need some things on your host to build this.  On Ubuntu, run:
 
 ```
@@ -23,14 +34,9 @@ sudo apt install python3-pyelftools
 
 There may be more.
 
-The standard builds from NXP are not SystemReady.  They build u-boot
-with OPTEE enabled, but don't build OPTEE into the image, so when
-u-boot tries to access EFI things it goes through OPTEE, which fails.
-I tried building OPTEE per the insructions and adding it to the build,
-but it still didn't work.  So this build just disabled OPTEE in
-u-boot.
+### Setting Up For Your Build
 
-After you check this out, you must run:
+After you check this this git repository out, you must run:
 
 ```
   git submodule init
@@ -39,6 +45,11 @@ After you check this out, you must run:
 to get all the sources.  After that, just type "make" here and it will
 build the firmware.  (Note that the first time, "make -j<n>" won't
 work because it prompts you for EULA acceptance.)
+
+The default build builds an imx8mq-evk target.  If you want to
+override this, you can copy the make.config file to your own file,
+modify it, and run make with FW_CONFIG=<file>.  There are other
+configurable things like keys that you probably need to modify.
 
 ## Installing the firmware
 
@@ -130,3 +141,34 @@ in the "Signing of TAs" section describes how to create your own keys.
 The makefile here uses the same names, TA_PUBLIC_KEY and TA_SIGN_KEY,
 as the optee build.  You can override these to provide your own key,
 by default these point to the default one in optee.
+
+# Building Your Own OPTEE Applications
+
+The config.make file mentioned earlier is designed so you can build
+your own OPTEE applications against this build.  To do this, in your
+makefiles set:
+
+```
+FW_ROOT=<path to this directory>
+include <path to the config.make file you are using>
+```
+
+To build an OPTEE application, use the standard format defined by
+optee, probably by coping the examples, and make the TA with:
+
+```
+make $(KEYS) CROSS_COMPILE=$(CROSS_COMPILE) \
+	PLATFORM=$(OPTEE_PLATORM) \
+	TA_DEV_KIT_DIR=$(TA_DEV_KIT_DIR)
+```
+
+Build the host application with:
+
+```
+	make CROSS_COMPILE=$(CROSS_COMPILE) \
+		TEEC_EXPORT=$(TEEC_EXPORT) --no-builtin-variables
+```
+
+You can look at the makefile here for details.  Then copy the
+application and .ta file to the target as described earlier and run
+the application.  It should automatically load your TA executable.
