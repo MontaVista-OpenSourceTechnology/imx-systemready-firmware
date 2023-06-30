@@ -67,6 +67,23 @@ there were also the Quick Start Guide for the i.MX 8M Quad Evaluation
 Kit, the i.MX 8M EVK Board Hardware User's Guide, and various forum
 documentation.
 
+## Installing the firmware from Linux
+
+It took me a while to figure this out, but you can update the firmware
+from Linux.  Basically, you do the following:
+
+```
+echo 0 > /sys/block/mmcblk0boot0/force_ro
+dd if=imx-boot-imx8mq-0.3.bin of=/dev/mmcblk0boot0 bs=1024 seek=33 status=progress
+sync
+echo 1 > /sys/block/mmcblk0boot0/force_ro
+```
+
+I have learned that eMMC devices are not simple devices, there is all
+kinds of strange stuff about them.  I used the web page at
+https://developer.toradex.com/software/linux-resources/linux-features/emmc-linux/
+for information on how these parts work.
+
 ## Installing and Running the OPTEE applications
 
 WARNING: See the next section on keys, the default settings are insecure.
