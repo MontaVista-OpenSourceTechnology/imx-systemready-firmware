@@ -62,7 +62,7 @@ setting is "10", change it to "01" to allow programming the eMMC.
 Then run:
 
 ```
-  sudo ./uuu -b emmc imx-boot-imx8mq.bin
+  sudo ./uuu -b emmc imx-boot-imx8mq-<ver>.bin
 ```
 
 on the host.  It will burn the firmware into the eMMC device on the
@@ -87,7 +87,7 @@ from Linux.  Basically, you do the following:
 
 ```
 echo 0 > /sys/block/mmcblk0boot0/force_ro
-dd if=imx-boot-imx8mq-0.3.bin of=/dev/mmcblk0boot0 bs=1024 seek=33 status=progress
+dd if=imx-boot-imx8mq-<ver>.bin of=/dev/mmcblk0boot0 bs=1024 seek=33 status=progress
 sync
 echo 1 > /sys/block/mmcblk0boot0/force_ro
 ```
