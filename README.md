@@ -42,13 +42,13 @@ After you check this this git repository out, you must run:
   git submodule init
   git submodule update
 ```
-to get all the sources.  After that, just type "make" here and it will
-build the firmware.  (Note that the first time, "make -j<n>" won't
+to get all the sources.  After that, just type `make` here and it will
+build the firmware.  (Note that the first time, `make -j<n>` won't
 work because it prompts you for EULA acceptance.)
 
 The default build builds an imx8mq-evk target.  If you want to
 override this, you can copy the make.config file to your own file,
-modify it, and run make with FW_CONFIG=<file>.  There are other
+modify it, and run make with `FW_CONFIG=<file>`.  There are other
 configurable things like keys that you probably need to modify.
 
 ## Installing the firmware
