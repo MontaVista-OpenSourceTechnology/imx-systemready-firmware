@@ -20,7 +20,7 @@ RPMB is not set up on the eMMC chip.
 
 To work around this, this build puts EFI variables in a normal file.
 
-### Necessary Host Packates
+### Necessary Host Packages
 
 You will need some things on your host to build this.  On Ubuntu, run:
 

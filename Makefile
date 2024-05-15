@@ -30,7 +30,7 @@ TARGET_BIN = imx-boot-$(PLATFORM)-$(BUILDVER).bin
 # has to be done.  That should be fixed at some point.
 ENABLE_TEE = true
 
-FIRMWARE_VER = 8.15
+FIRMWARE_VER = 8.20
 FIRMWARE_FILE = firmware-imx-$(FIRMWARE_VER).bin
 FIRMWARE_URL = http://sources.buildroot.net/firmware-imx/$(FIRMWARE_FILE)
 
