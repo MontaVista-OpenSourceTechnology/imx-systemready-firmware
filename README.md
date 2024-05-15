@@ -29,10 +29,17 @@ sudo apt install gcc-aarch64-linux-gnu
 sudo apt install libusb-1.0-0-dev libbz2-dev libzstd-dev pkg-config
 sudo apt install cmake libssl-dev g++
 sudo apt install libgnutls28-dev
-sudo apt install python3-pyelftools
+sudo apt install python3-pyelftools libtinyxml2-dev
 ```
 
 There may be more.
+
+On CentOS, libc for aarch64 doesn't seem to get installed with the aarch64
+gcc.  I haven't been able to get this to work properly on CentOS type
+systems because of this.  You get an error about -lc not being found.
+I tried using a yocto sysroot install, but that didn't work, either,
+because of the environment that sets up.  If anyone gets it working,
+please let us know and we will incorporate the procedures or changes.
 
 ### Setting Up For Your Build
 
